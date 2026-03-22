@@ -1,0 +1,34 @@
+# Ignore bash scripts
+*.bash
+
+# Ignore object files
+*.o
+
+# Ignore compiled executables
+pygons
+a.out
+
+# Ignore vim swap files
+*.swp
+
+# Ignore test input files
+*.txt
+
+# Ignore tar files
+*.gz
+
+# Ignore json (for the vscode extension)
+*.json
+
+# Ignore pdf files
+*.pdf
+
+# Test droppings
+*.out
+*.err
+*.diff
+*.bin
+*.ltoc
+*.stoc
+*.md5
+*.ls
