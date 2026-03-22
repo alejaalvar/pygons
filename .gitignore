@@ -11,9 +11,6 @@ a.out
 # Ignore vim swap files
 *.swp
 
-# Ignore test input files
-*.txt
-
 # Ignore tar files
 *.gz
 
@@ -32,3 +29,6 @@ a.out
 *.stoc
 *.md5
 *.ls
+
+# Ignore the pycache
+__pycache__
