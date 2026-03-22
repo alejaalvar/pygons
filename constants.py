@@ -1,0 +1,3 @@
+SCREEN_WIDTH: int = 1280
+SCREEN_HEIGHT: int = 720
+FPS: int = 60
