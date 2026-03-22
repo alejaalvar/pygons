@@ -12,6 +12,7 @@ ship = Ship(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
 running = True
 delta_time: float = 0.0
 
+# ========== Game Loop ==========
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -26,5 +27,6 @@ while running:
 
     pygame.display.flip()
     delta_time = clock.tick(FPS) / 1000
+# ========== End Game Loop ==========
 
 pygame.quit()

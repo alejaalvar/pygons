@@ -1,5 +1,5 @@
+from typing import List
 import math
-
 import pygame
 from pygame import Vector2
 from constants import SCREEN_HEIGHT, SCREEN_WIDTH
@@ -16,8 +16,17 @@ class SpaceObject:
         self.position.x %= SCREEN_WIDTH
         self.position.y %= SCREEN_HEIGHT
 
-    def draw(self, screen: pygame.Surface) -> None:
-        pass
+    def _get_rotated_points(self, base_points: list[Vector2]) -> list[Vector2]:
+        rad: float = math.radians(self.angle)  # degrees -> radians
+        cos_a: float = math.cos(rad)
+        sin_a: float = math.sin(rad)
+        return [
+            Vector2(
+                p.x * cos_a - p.y * sin_a + self.position.x,
+                p.x * sin_a + p.y * cos_a + self.position.y,
+            )
+            for p in base_points
+        ]
 
 
 class Ship(SpaceObject):
@@ -51,14 +60,37 @@ class Ship(SpaceObject):
         super().update(delta_time)
 
     def draw(self, screen: pygame.Surface) -> None:
-        rad = math.radians(self.angle)
-        cos_a, sin_a = math.cos(rad), math.sin(rad)
+        # rad: float = math.radians(self.angle)
+        # cos_a: float = math.cos(rad)
+        # sin_a: float = math.sin(rad)
 
-        def rotate(p: Vector2) -> Vector2:
-            return Vector2(
-                p.x * cos_a - p.y * sin_a + self.position.x,
-                p.x * sin_a + p.y * cos_a + self.position.y,
-            )
+        # def rotate(p: Vector2) -> Vector2:
+        #     return Vector2(
+        #         p.x * cos_a - p.y * sin_a + self.position.x,
+        #         p.x * sin_a + p.y * cos_a + self.position.y,
+        #     )
 
-        points = [rotate(p) for p in self.BASE_POINTS]
+        # points = [rotate(p) for p in self.BASE_POINTS]
+        # pygame.draw.polygon(screen, "white", points, width=2)
+
+        points: List[Vector2] = self._get_rotated_points(self.BASE_POINTS)
+        pygame.draw.polygon(screen, "white", points, width=2)
+
+
+class Asteroid(SpaceObject):
+    BASE_POINTS: list[Vector2] = [
+        Vector2(0, -25),
+        Vector2(15, -15),
+        Vector2(20, 0),
+        Vector2(12, 20),
+        Vector2(-10, 22),
+        Vector2(-20, 8),
+        Vector2(-18, -12),
+    ]
+
+    def __init__(self, x: float, y: float) -> None:
+        super().__init__(x, y)
+
+    def draw(self, screen: pygame.Surface) -> None:
+        points: List[Vector2] = self._get_rotated_points(self.BASE_POINTS)
         pygame.draw.polygon(screen, "white", points, width=2)
