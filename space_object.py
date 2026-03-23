@@ -90,3 +90,27 @@ class Asteroid(SpaceObject):
     def draw(self, screen: pygame.Surface) -> None:
         points: List[Vector2] = self._get_rotated_points(self.BASE_POINTS)
         pygame.draw.polygon(screen, ASTEROID_COLOR, points, width=2)
+
+
+class Projectile(SpaceObject):
+    SPEED: float = 400.0
+    RADIUS: float = 5.0
+    LIFETIME: float = 2.0
+
+    def __init__(self, ship: Ship):
+        super().__init__(ship.position.x, ship.position.y)
+        rad: float = math.radians(ship.angle)
+        self.velocity = Vector2(math.sin(rad), -math.cos(rad)) * self.SPEED
+        self.lifetime: float = self.LIFETIME
+
+    def update(self, delta_time: float) -> None:
+        self.lifetime -= delta_time
+        super().update(delta_time)
+
+    def draw(self, screen: pygame.Surface) -> None:
+        pygame.draw.circle(
+            screen, "red", (int(self.position.x), int(self.position.y)), 3
+        )
+
+    def is_expired(self) -> bool:
+        return self.lifetime <= 0
