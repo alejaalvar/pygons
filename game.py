@@ -5,6 +5,24 @@ from constants import *
 from space_object import *
 
 
+def handle_projectile_collisions(
+    projectiles: List[Projectile], asteroids: List[Asteroid]
+) -> tuple[List[Projectile], List[Asteroid]]:
+    hit_asteroids = set()
+    hit_projectiles = set()
+
+    for projectile in projectiles:
+        for asteroid in asteroids:
+            if is_colliding(projectile, asteroid):
+                hit_asteroids.add(asteroid)
+                hit_projectiles.add(projectile)
+
+    return (
+        [p for p in projectiles if p not in hit_projectiles],
+        [a for a in asteroids if a not in hit_asteroids],
+    )
+
+
 def spawn_asteroid(ship: Ship) -> Asteroid:
     while True:
         x: float = random.uniform(0, SCREEN_WIDTH)
@@ -65,6 +83,10 @@ while running:
 
     for asteroid in asteroids:
         asteroid.update(delta_time)
+
+    projectiles, asteroids = handle_projectile_collisions(
+        projectiles, asteroids
+    )
 
     # Check if the player has collided w/asteroid
     for asteroid in asteroids:
