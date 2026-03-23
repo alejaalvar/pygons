@@ -60,19 +60,6 @@ class Ship(SpaceObject):
         super().update(delta_time)
 
     def draw(self, screen: pygame.Surface) -> None:
-        # rad: float = math.radians(self.angle)
-        # cos_a: float = math.cos(rad)
-        # sin_a: float = math.sin(rad)
-
-        # def rotate(p: Vector2) -> Vector2:
-        #     return Vector2(
-        #         p.x * cos_a - p.y * sin_a + self.position.x,
-        #         p.x * sin_a + p.y * cos_a + self.position.y,
-        #     )
-
-        # points = [rotate(p) for p in self.BASE_POINTS]
-        # pygame.draw.polygon(screen, "white", points, width=2)
-
         points: List[Vector2] = self._get_rotated_points(self.BASE_POINTS)
         pygame.draw.polygon(screen, "white", points, width=2)
 
