@@ -2,10 +2,12 @@ from typing import List
 import math
 import pygame
 from pygame import Vector2
-from constants import SCREEN_HEIGHT, SCREEN_WIDTH
+from constants import *
 
 
 class SpaceObject:
+    RADIUS: float = 0.0
+
     def __init__(self, x: float, y: float) -> None:
         self.position: Vector2 = Vector2(x, y)
         self.velocity: Vector2 = Vector2(0, 0)
@@ -33,6 +35,7 @@ class Ship(SpaceObject):
     TURN_SPEED: float = 200.0  # degrees/sec
     THRUST: float = 400.0  # pixels/sec^2
     DRAG: float = 0.98  # velocity multiplier per frame
+    RADIUS: float = 15.0
 
     BASE_POINTS: list[Vector2] = [
         Vector2(0, -20),  # nose
@@ -61,10 +64,11 @@ class Ship(SpaceObject):
 
     def draw(self, screen: pygame.Surface) -> None:
         points: List[Vector2] = self._get_rotated_points(self.BASE_POINTS)
-        pygame.draw.polygon(screen, "white", points, width=2)
+        pygame.draw.polygon(screen, SHIP_COLOR, points, width=0)
 
 
 class Asteroid(SpaceObject):
+    RADIUS: float = 20.0
     BASE_POINTS: list[Vector2] = [
         Vector2(0, -25),
         Vector2(15, -15),
@@ -80,4 +84,4 @@ class Asteroid(SpaceObject):
 
     def draw(self, screen: pygame.Surface) -> None:
         points: List[Vector2] = self._get_rotated_points(self.BASE_POINTS)
-        pygame.draw.polygon(screen, "white", points, width=2)
+        pygame.draw.polygon(screen, ASTEROID_COLOR, points, width=2)
