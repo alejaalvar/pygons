@@ -1,5 +1,6 @@
 from typing import List
 import math
+import random
 import pygame
 from pygame import Vector2
 from constants import *
@@ -81,6 +82,10 @@ class Asteroid(SpaceObject):
 
     def __init__(self, x: float, y: float) -> None:
         super().__init__(x, y)
+        speed: float = random.uniform(20, 80)
+        angle: float = random.uniform(0, 360)
+        rad: float = math.radians(angle)
+        self.velocity = Vector2(math.sin(rad), -math.cos(rad)) * speed
 
     def draw(self, screen: pygame.Surface) -> None:
         points: List[Vector2] = self._get_rotated_points(self.BASE_POINTS)
