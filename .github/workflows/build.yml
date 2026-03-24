@@ -25,12 +25,15 @@ jobs:
           - os: ubuntu-latest
             artifact: pygons-linux
             separator: ":"        # Linux/macOS use ":" in --add-data paths
+            artifact_ext: ""      # plain binary, no extension
           - os: windows-latest
             artifact: pygons-windows
             separator: ";"        # Windows uses ";" in --add-data paths
+            artifact_ext: ".exe"
           - os: macos-latest
             artifact: pygons-macos
             separator: ":"
+            artifact_ext: ".zip"  # .app bundle will be zipped before upload
 
     runs-on: ${{ matrix.os }}   # GitHub spins up a fresh VM for each OS
 
@@ -63,13 +66,19 @@ jobs:
           --windowed
           game.py
 
-      # 5. Upload the binary as a temporary artifact so the release job can grab it.
+      # 5. macOS only: PyInstaller --windowed produces a .app bundle (a directory).
+      #    Zip it into a single file so it can be uploaded.
+      - name: Zip macOS app bundle
+        if: matrix.os == 'macos-latest'
+        run: zip -r dist/${{ matrix.artifact }}.zip dist/${{ matrix.artifact }}.app
+
+      # 6. Upload the binary as a temporary artifact so the release job can grab it.
       #    Artifacts are stored by GitHub for 90 days.
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
-          path: dist/${{ matrix.artifact }}*   # * catches .exe on Windows
+          path: dist/${{ matrix.artifact }}${{ matrix.artifact_ext }}
 
   # ── Job 2: Release ──────────────────────────────────────────────────────────
   # Runs after all three builds finish. Downloads the artifacts and
