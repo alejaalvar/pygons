@@ -15,6 +15,7 @@ class Game:
         self.clock: pygame.time.Clock = pygame.time.Clock()
         self.font_large: pygame.font.Font = pygame.font.SysFont(None, 80)
         self.font_small: pygame.font.Font = pygame.font.SysFont(None, 40)
+        self.font_tiny: pygame.font.Font = pygame.font.SysFont(None, 24)
         self._reset()
         self.game_state = "title"
 
@@ -133,6 +134,16 @@ class Game:
         quit_text: pygame.Surface = self.font_small.render(
             "Q  -  Quit", True, "yellow"
         )
+        margin: int = 20
+        dev: pygame.Surface = self.font_tiny.render(
+            "Developed by: " + DEVELOPER_NAME, True, "gray"
+        )
+        discord: pygame.Surface = self.font_tiny.render(
+            "Discord: " + DEVELOPER_DISCORD, True, "gray"
+        )
+        github: pygame.Surface = self.font_tiny.render(
+            "GitHub: " + DEVELOPER_GITHUB, True, "gray"
+        )
         self.screen.blit(
             title, title.get_rect(center=(center_x, center_y - 60))
         )
@@ -141,6 +152,20 @@ class Game:
         )
         self.screen.blit(
             quit_text, quit_text.get_rect(center=(center_x, center_y + 70))
+        )
+        self.screen.blit(
+            dev,
+            dev.get_rect(
+                bottomright=(SCREEN_WIDTH - margin, SCREEN_HEIGHT - margin)
+            ),
+        )
+        self.screen.blit(
+            discord,
+            discord.get_rect(bottomleft=(margin, SCREEN_HEIGHT - margin)),
+        )
+        self.screen.blit(
+            github,
+            github.get_rect(midbottom=(center_x, SCREEN_HEIGHT - margin)),
         )
 
     def _draw_pause_menu(self) -> None:
@@ -197,9 +222,10 @@ class Game:
         self.screen.fill("black")
         for asteroid in self.asteroids:
             asteroid.draw(self.screen)
-        self.ship.draw(self.screen)
-        for projectile in self.projectiles:
-            projectile.draw(self.screen)
+        if self.game_state == "playing":
+            self.ship.draw(self.screen)
+            for projectile in self.projectiles:
+                projectile.draw(self.screen)
         if self.game_state == "title":
             self._draw_title_screen()
         elif self.game_state == "game_over":
