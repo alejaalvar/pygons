@@ -37,7 +37,7 @@ A multi-platform fast-paced space shooter built with Python and pygame. Pilot yo
 4. Run the game:
 
    ```bash
-   python game.py
+   python main.py
    ```
 
 ---

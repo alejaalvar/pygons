@@ -308,7 +308,3 @@ class Game:
             self._draw()
             self.delta_time = self.clock.tick(FPS) / 1000
         pygame.quit()
-
-
-if __name__ == "__main__":
-    Game().run()
