@@ -13,9 +13,9 @@ class Game:
         )
         pygame.display.set_caption(GAME_CAPTION)
         self.clock: pygame.time.Clock = pygame.time.Clock()
-        self.font_large: pygame.font.Font = pygame.font.SysFont(None, 80)
-        self.font_small: pygame.font.Font = pygame.font.SysFont(None, 40)
-        self.font_tiny: pygame.font.Font = pygame.font.SysFont(None, 24)
+        self.font_large: pygame.font.Font = pygame.font.Font(FONT_FILE, 48)
+        self.font_small: pygame.font.Font = pygame.font.Font(FONT_FILE, 20)
+        self.font_tiny: pygame.font.Font = pygame.font.Font(FONT_FILE, 12)
         self._reset()
         self.game_state = "title"
 
