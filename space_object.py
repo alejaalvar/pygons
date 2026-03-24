@@ -1,3 +1,9 @@
+"""
+space_object.py
+
+Defines the core SpaceObject class hierarchy
+"""
+
 from typing import List
 import math
 import random
@@ -7,19 +13,47 @@ from constants import *
 
 
 class SpaceObject:
+    """Represents a generic space object with common physics/geometric characteristics.
+
+    Attributes:
+        RADIUS: radius of the space object, used for collision detection
+        position: 2d vector representing the space object's position in space
+        velocity: 2d vector representing the space object's velocity
+        angle: the angle of the space object
+    """
+
     RADIUS: float = 0.0
 
     def __init__(self, x: float, y: float) -> None:
+        """Initialize a default space object with a position in 2d space
+
+        Args:
+            x (float): the x coordinate
+            y (float): the y coordinate
+        """
         self.position: Vector2 = Vector2(x, y)
         self.velocity: Vector2 = Vector2(0, 0)
         self.angle: float = 0.0  # degrees
 
     def update(self, delta_time: float) -> None:
+        """Update the position state of the space object
+
+        Args:
+            delta_time (float): represents the time since the last frame was drawn
+        """
         self.position += self.velocity * delta_time
         self.position.x %= SCREEN_WIDTH
         self.position.y %= SCREEN_HEIGHT
 
     def _get_rotated_points(self, base_points: list[Vector2]) -> list[Vector2]:
+        """Compute the rotation for a list of 2d coordinates - used heavily in drawing
+
+        Args:
+            base_points (list[Vector2]): the list of coordinates
+
+        Returns:
+            list[Vector2]: the updated list of coordinates after the rotation
+        """
         rad: float = math.radians(self.angle)  # degrees -> radians
         cos_a: float = math.cos(rad)
         sin_a: float = math.sin(rad)
@@ -33,6 +67,19 @@ class SpaceObject:
 
 
 class Ship(SpaceObject):
+    """Represents the controllable ship
+
+    Attributes:
+        TURN_SPEED: the speed at which the ship rotates
+        THRUST: the acceleration of the ship
+        DRAG: the resistance against the ship (space has no resistance, oh well)
+        RADIUS: the radius of the ship - represents its hit box
+        EXPLOSION_DURATION: the length of the explosion animation on death
+        BASE_POINTS: the actual points in space where we draw the triangle
+        is_alive: the life status of the ship - used as a boolean flag
+        explosion_timer: the counter for the explosion animation
+    """
+
     TURN_SPEED: float = 200.0  # degrees/sec
     THRUST: float = 400.0  # pixels/sec^2
     DRAG: float = 0.98  # velocity multiplier per frame
@@ -97,6 +144,14 @@ class Ship(SpaceObject):
 
 
 class Asteroid(SpaceObject):
+    """Represents an asteroid object
+
+    Attributes:
+        RADIUS: the radius of the asteroid - represents the hit box
+        BASE_POINTS: list of 2d vectors representing the points of the asteroid
+        velocity: the base velocity of the asteroid - determined randomly
+    """
+
     RADIUS: float = 20.0
     BASE_POINTS: list[Vector2] = [
         Vector2(0, -25),
@@ -121,6 +176,16 @@ class Asteroid(SpaceObject):
 
 
 class Projectile(SpaceObject):
+    """Represents a projectile space object
+
+    Attributes:
+        SPEED: the speed a projectile travels
+        RADIUS: the radius of the projectile - represents the hit box
+        LIFETIME: the max lifetime a projectile can exist
+        velocity: the velocity of the projectile
+        lifetime: the lifetime of the projectile - used to check if its expired
+    """
+
     SPEED: float = 400.0
     RADIUS: float = 5.0
     LIFETIME: float = 2.0

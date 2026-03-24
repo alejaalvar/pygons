@@ -1,3 +1,9 @@
+"""
+game.py
+
+Defines the Game class, which manages the games loop and resources.
+"""
+
 from typing import List
 import os
 import sys
@@ -10,11 +16,22 @@ from space_object import *
 def resource_path(relative_path: str) -> str:
     # When bundled by PyInstaller, files are extracted to sys._MEIPASS at runtime.
     # In normal development, just use the path as-is.
-    base = getattr(sys, '_MEIPASS', os.path.abspath("."))
+    base = getattr(sys, "_MEIPASS", os.path.abspath("."))
     return os.path.join(base, relative_path)
 
 
 class Game:
+    """Represents the Game manager - controls game resources and the game loop
+
+    Attributes:
+        screen: the screen that will be drawn on
+        clock: controls and tracks the game's framerate
+        font_large: large font used for menu headers
+        font_small: small font used for menu options
+        font_tiny: tiny font usesd for menu footers
+        game_state: represents if the game is paused, gameover, or playing
+    """
+
     def __init__(self) -> None:
         pygame.init()
         self.screen: pygame.Surface = pygame.display.set_mode(
@@ -22,9 +39,15 @@ class Game:
         )
         pygame.display.set_caption(GAME_CAPTION)
         self.clock: pygame.time.Clock = pygame.time.Clock()
-        self.font_large: pygame.font.Font = pygame.font.Font(resource_path(FONT_FILE), 48)
-        self.font_small: pygame.font.Font = pygame.font.Font(resource_path(FONT_FILE), 20)
-        self.font_tiny: pygame.font.Font = pygame.font.Font(resource_path(FONT_FILE), 12)
+        self.font_large: pygame.font.Font = pygame.font.Font(
+            resource_path(FONT_FILE), 48
+        )
+        self.font_small: pygame.font.Font = pygame.font.Font(
+            resource_path(FONT_FILE), 20
+        )
+        self.font_tiny: pygame.font.Font = pygame.font.Font(
+            resource_path(FONT_FILE), 12
+        )
         self._reset()
         self.game_state = "title"
 
