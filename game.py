@@ -16,6 +16,7 @@ class Game:
         self.font_large: pygame.font.Font = pygame.font.SysFont(None, 80)
         self.font_small: pygame.font.Font = pygame.font.SysFont(None, 40)
         self._reset()
+        self.game_state = "title"
 
     def _reset(self) -> None:
         self.ship: Ship = Ship(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
@@ -62,7 +63,14 @@ class Game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
-            if self.game_state == "game_over" and event.type == pygame.KEYDOWN:
+            if self.game_state == "title" and event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    return False
+                if event.key == pygame.K_RETURN:
+                    self.game_state = "playing"
+            elif (
+                self.game_state == "game_over" and event.type == pygame.KEYDOWN
+            ):
                 if event.key in (pygame.K_q, pygame.K_ESCAPE):
                     return False
                 if event.key == pygame.K_r:
@@ -112,6 +120,28 @@ class Game:
             and self.ship.get_explosion_timer() <= 0
         ):
             self.game_state = "game_over"
+
+    def _draw_title_screen(self) -> None:
+        center_x: int = SCREEN_WIDTH // 2
+        center_y: int = SCREEN_HEIGHT // 2
+        title: pygame.Surface = self.font_large.render(
+            GAME_CAPTION, True, "white"
+        )
+        start: pygame.Surface = self.font_small.render(
+            "ENTER  -  Start", True, "yellow"
+        )
+        quit_text: pygame.Surface = self.font_small.render(
+            "Q  -  Quit", True, "yellow"
+        )
+        self.screen.blit(
+            title, title.get_rect(center=(center_x, center_y - 60))
+        )
+        self.screen.blit(
+            start, start.get_rect(center=(center_x, center_y + 20))
+        )
+        self.screen.blit(
+            quit_text, quit_text.get_rect(center=(center_x, center_y + 70))
+        )
 
     def _draw_pause_menu(self) -> None:
         center_x: int = SCREEN_WIDTH // 2
@@ -170,9 +200,11 @@ class Game:
         self.ship.draw(self.screen)
         for projectile in self.projectiles:
             projectile.draw(self.screen)
-        if self.game_state == "game_over":
+        if self.game_state == "title":
+            self._draw_title_screen()
+        elif self.game_state == "game_over":
             self._draw_game_over_menu()
-        if self.game_state == "paused":
+        elif self.game_state == "paused":
             self._draw_pause_menu()
         pygame.display.flip()
 
