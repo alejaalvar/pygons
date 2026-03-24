@@ -1,8 +1,17 @@
 from typing import List
+import os
+import sys
 import random
 import pygame
 from constants import *
 from space_object import *
+
+
+def resource_path(relative_path: str) -> str:
+    # When bundled by PyInstaller, files are extracted to sys._MEIPASS at runtime.
+    # In normal development, just use the path as-is.
+    base = getattr(sys, '_MEIPASS', os.path.abspath("."))
+    return os.path.join(base, relative_path)
 
 
 class Game:
@@ -13,9 +22,9 @@ class Game:
         )
         pygame.display.set_caption(GAME_CAPTION)
         self.clock: pygame.time.Clock = pygame.time.Clock()
-        self.font_large: pygame.font.Font = pygame.font.Font(FONT_FILE, 48)
-        self.font_small: pygame.font.Font = pygame.font.Font(FONT_FILE, 20)
-        self.font_tiny: pygame.font.Font = pygame.font.Font(FONT_FILE, 12)
+        self.font_large: pygame.font.Font = pygame.font.Font(resource_path(FONT_FILE), 48)
+        self.font_small: pygame.font.Font = pygame.font.Font(resource_path(FONT_FILE), 20)
+        self.font_tiny: pygame.font.Font = pygame.font.Font(resource_path(FONT_FILE), 12)
         self._reset()
         self.game_state = "title"
 
