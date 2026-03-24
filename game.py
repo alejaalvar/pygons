@@ -24,7 +24,7 @@ class Game:
         ]
         self.projectiles: List[Projectile] = []
         self.shoot_timer: float = 0.0
-        self.game_state: str = "playing"  # "playing" | "game_over"
+        self.game_state: str = "playing"  # "playing" | "paused" | "game_over"
         self.delta_time: float = 0.0
 
     def _spawn_asteroid(self) -> Asteroid:
@@ -67,6 +67,16 @@ class Game:
                     return False
                 if event.key == pygame.K_r:
                     self._reset()
+            elif self.game_state == "playing" and event.type == pygame.KEYDOWN:
+                if event.key in (pygame.K_p, pygame.K_ESCAPE):
+                    self.game_state = "paused"
+            elif self.game_state == "paused" and event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    return False
+                if event.key == pygame.K_r:
+                    self._reset()
+                if event.key in (pygame.K_k, pygame.K_p, pygame.K_ESCAPE):
+                    self.game_state = "playing"
         return True
 
     def _update(self) -> None:
@@ -103,6 +113,34 @@ class Game:
         ):
             self.game_state = "game_over"
 
+    def _draw_pause_menu(self) -> None:
+        center_x: int = SCREEN_WIDTH // 2
+        center_y: int = SCREEN_HEIGHT // 2
+        title: pygame.Surface = self.font_large.render("PAUSE", True, "white")
+
+        keep_playing_text: pygame.Surface = self.font_small.render(
+            "K  -  Keep Playing", True, "yellow"
+        )
+        restart: pygame.Surface = self.font_small.render(
+            "R  -  Restart", True, "yellow"
+        )
+        quit_text: pygame.Surface = self.font_small.render(
+            "Q  -  Quit", True, "yellow"
+        )
+        self.screen.blit(
+            title, title.get_rect(center=(center_x, center_y - 60))
+        )
+        self.screen.blit(
+            keep_playing_text,
+            keep_playing_text.get_rect(center=(center_x, center_y + 20)),
+        )
+        self.screen.blit(
+            restart, restart.get_rect(center=(center_x, center_y + 70))
+        )
+        self.screen.blit(
+            quit_text, quit_text.get_rect(center=(center_x, center_y + 120))
+        )
+
     def _draw_game_over_menu(self) -> None:
         center_x: int = SCREEN_WIDTH // 2
         center_y: int = SCREEN_HEIGHT // 2
@@ -134,6 +172,8 @@ class Game:
             projectile.draw(self.screen)
         if self.game_state == "game_over":
             self._draw_game_over_menu()
+        if self.game_state == "paused":
+            self._draw_pause_menu()
         pygame.display.flip()
 
     def run(self) -> None:
