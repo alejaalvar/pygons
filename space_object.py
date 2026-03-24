@@ -37,6 +37,7 @@ class Ship(SpaceObject):
     THRUST: float = 400.0  # pixels/sec^2
     DRAG: float = 0.98  # velocity multiplier per frame
     RADIUS: float = 15.0
+    EXPLOSION_DURATION: float = 1.0
 
     BASE_POINTS: list[Vector2] = [
         Vector2(0, -20),  # nose
@@ -46,26 +47,53 @@ class Ship(SpaceObject):
 
     def __init__(self, x: float, y: float) -> None:
         super().__init__(x, y)
+        self.is_alive = True
+        self.explosion_timer: float = 0.0
+
+    def get_explosion_timer(self) -> float:
+        return self.explosion_timer
 
     def handle_input(
         self, keys: pygame.key.ScancodeWrapper, delta_time: float
     ) -> None:
-        if keys[pygame.K_a] or keys[pygame.K_LEFT]:
+        if keys[pygame.K_a] or keys[pygame.K_LEFT] or keys[pygame.K_j]:
             self.angle -= self.TURN_SPEED * delta_time
-        if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+        if keys[pygame.K_d] or keys[pygame.K_RIGHT] or keys[pygame.K_l]:
             self.angle += self.TURN_SPEED * delta_time
-        if keys[pygame.K_w] or keys[pygame.K_UP]:
+        if keys[pygame.K_w] or keys[pygame.K_UP] or keys[pygame.K_k]:
             rad = math.radians(self.angle)
             thrust_dir = Vector2(math.sin(rad), -math.cos(rad))
             self.velocity += thrust_dir * self.THRUST * delta_time
 
     def update(self, delta_time: float) -> None:
         self.velocity *= self.DRAG
+        if not self.is_alive:
+            self.explosion_timer -= delta_time
         super().update(delta_time)
 
     def draw(self, screen: pygame.Surface) -> None:
+        if self.is_alive:
+            points: List[Vector2] = self._get_rotated_points(self.BASE_POINTS)
+            pygame.draw.polygon(screen, SHIP_COLOR, points, width=0)
+        elif self.explosion_timer > 0:
+            self.draw_explosion(screen)
+
+    def draw_explosion(self, screen: pygame.Surface) -> None:
+        progress: float = 1.0 - (
+            self.explosion_timer / self.EXPLOSION_DURATION
+        )
         points: List[Vector2] = self._get_rotated_points(self.BASE_POINTS)
-        pygame.draw.polygon(screen, SHIP_COLOR, points, width=0)
+        for point in points:
+            offset: float = (point - self.position) * progress * 3
+            pos: float = point + offset
+            pygame.draw.circle(screen, SHIP_COLOR, (int(pos.x), int(pos.y)), 3)
+
+    def unalive(self):
+        self.is_alive = not self.is_alive
+        self.explosion_timer = self.EXPLOSION_DURATION  # start the countdown
+
+    def get_life_status(self) -> bool:
+        return self.is_alive
 
 
 class Asteroid(SpaceObject):

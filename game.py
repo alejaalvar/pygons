@@ -60,6 +60,9 @@ shoot_timer: float = 0.0
 # ========== Game Loop ==========
 while running:
 
+    if not ship.get_life_status() and ship.get_explosion_timer() <= 0:
+        running = False
+
     shoot_timer -= delta_time
 
     for event in pygame.event.get():
@@ -70,7 +73,6 @@ while running:
     keys = pygame.key.get_pressed()
     ship.handle_input(keys, delta_time)
     if keys[pygame.K_SPACE] and shoot_timer <= 0:
-        print("Firing!")
         projectiles.append(Projectile(ship))
         shoot_timer = SHOOT_COOLDOWN
 
@@ -91,7 +93,9 @@ while running:
     # Check if the player has collided w/asteroid
     for asteroid in asteroids:
         if is_colliding(asteroid, ship):
-            print("Collide!")  # placeholder for explosion logic
+            if ship.get_life_status():
+                print("killing ship")
+                ship.unalive()
 
     # Clear the frame and draw the new one
     screen.fill("black")
