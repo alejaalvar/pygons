@@ -45,22 +45,22 @@ A fast-paced space shooter built with Python and pygame. Pilot your ship, dodge 
 ## Dependencies
 
 | Package | Version |
-|---------|---------|
+| ------- | ------- |
 | pygame  | 2.6.1   |
 
 ---
 
 ## Controls
 
-| Action | Keys |
-|--------|------|
-| Rotate left | `A` / `←` / `J` |
-| Rotate right | `D` / `→` / `L` |
-| Thrust | `W` / `↑` / `K` |
-| Shoot | `Space` |
-| Pause / Unpause | `P` / `Esc` |
-| Restart | `R` |
-| Quit | `Q` |
+| Action          | Keys            |
+| --------------- | --------------- |
+| Rotate left     | `A` / `←` / `J` |
+| Rotate right    | `D` / `→` / `L` |
+| Thrust          | `W` / `↑` / `K` |
+| Shoot           | `Space`         |
+| Pause / Unpause | `P` / `Esc`     |
+| Restart         | `R`             |
+| Quit            | `Q`             |
 
 ---
 
@@ -74,6 +74,7 @@ A fast-paced space shooter built with Python and pygame. Pilot your ship, dodge 
 - ⚡ **Escalating difficulty** — asteroids get faster and more numerous as you survive longer
 - ❤️ **Ship lives** — multiple chances before game over
 - 🌠 **Special events** — meteor showers and other surprises to keep you on your toes
+- 💯 **Points System** - earn points for each asteroid destroyed and for surviving!
 
 ---
 
