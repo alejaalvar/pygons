@@ -5,108 +5,146 @@ from constants import *
 from space_object import *
 
 
-def handle_projectile_collisions(
-    projectiles: List[Projectile], asteroids: List[Asteroid]
-) -> tuple[List[Projectile], List[Asteroid]]:
-    hit_asteroids = set()
-    hit_projectiles = set()
+class Game:
+    def __init__(self) -> None:
+        pygame.init()
+        self.screen: pygame.Surface = pygame.display.set_mode(
+            (SCREEN_WIDTH, SCREEN_HEIGHT)
+        )
+        pygame.display.set_caption(GAME_CAPTION)
+        self.clock: pygame.time.Clock = pygame.time.Clock()
+        self.font_large: pygame.font.Font = pygame.font.SysFont(None, 80)
+        self.font_small: pygame.font.Font = pygame.font.SysFont(None, 40)
+        self._reset()
 
-    for projectile in projectiles:
-        for asteroid in asteroids:
-            if is_colliding(projectile, asteroid):
-                hit_asteroids.add(asteroid)
-                hit_projectiles.add(projectile)
+    def _reset(self) -> None:
+        self.ship: Ship = Ship(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+        self.asteroids: List[Asteroid] = [
+            self._spawn_asteroid() for _ in range(20)
+        ]
+        self.projectiles: List[Projectile] = []
+        self.shoot_timer: float = 0.0
+        self.game_state: str = "playing"  # "playing" | "game_over"
+        self.delta_time: float = 0.0
 
-    return (
-        [p for p in projectiles if p not in hit_projectiles],
-        [a for a in asteroids if a not in hit_asteroids],
-    )
+    def _spawn_asteroid(self) -> Asteroid:
+        while True:
+            x: float = random.uniform(0, SCREEN_WIDTH)
+            y: float = random.uniform(0, SCREEN_HEIGHT)
+            if (
+                pygame.math.Vector2(x, y).distance_to(self.ship.position)
+                > MIN_SPAWN_DISTANCE
+            ):
+                return Asteroid(x, y)
 
+    def _is_colliding(self, obj1: SpaceObject, obj2: SpaceObject) -> bool:
+        return (
+            obj1.position.distance_to(obj2.position)
+            < obj1.RADIUS + obj2.RADIUS
+        )
 
-def spawn_asteroid(ship: Ship) -> Asteroid:
-    while True:
-        x: float = random.uniform(0, SCREEN_WIDTH)
-        y: float = random.uniform(0, SCREEN_HEIGHT)
+    def _handle_projectile_collisions(self) -> None:
+        hit_asteroids: set[Asteroid] = set()
+        hit_projectiles: set[Projectile] = set()
+
+        for projectile in self.projectiles:
+            for asteroid in self.asteroids:
+                if self._is_colliding(projectile, asteroid):
+                    hit_asteroids.add(asteroid)
+                    hit_projectiles.add(projectile)
+
+        self.projectiles = [
+            p for p in self.projectiles if p not in hit_projectiles
+        ]
+        self.asteroids = [a for a in self.asteroids if a not in hit_asteroids]
+
+    def _handle_events(self) -> bool:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+            if self.game_state == "game_over" and event.type == pygame.KEYDOWN:
+                if event.key in (pygame.K_q, pygame.K_ESCAPE):
+                    return False
+                if event.key == pygame.K_r:
+                    self._reset()
+        return True
+
+    def _update(self) -> None:
+        if self.game_state != "playing":
+            return
+
+        self.shoot_timer -= self.delta_time
+
+        keys: pygame.key.ScancodeWrapper = pygame.key.get_pressed()
+        self.ship.handle_input(keys, self.delta_time)
+        if keys[pygame.K_SPACE] and self.shoot_timer <= 0:
+            self.projectiles.append(Projectile(self.ship))
+            self.shoot_timer = SHOOT_COOLDOWN
+
+        self.ship.update(self.delta_time)
+
+        for projectile in self.projectiles:
+            projectile.update(self.delta_time)
+        self.projectiles = [p for p in self.projectiles if not p.is_expired()]
+
+        for asteroid in self.asteroids:
+            asteroid.update(self.delta_time)
+
+        self._handle_projectile_collisions()
+
+        for asteroid in self.asteroids:
+            if self._is_colliding(asteroid, self.ship):
+                if self.ship.get_life_status():
+                    self.ship.unalive()
+
         if (
-            pygame.math.Vector2(x, y).distance_to(ship.position)
-            > MIN_SPAWN_DISTANCE
+            not self.ship.get_life_status()
+            and self.ship.get_explosion_timer() <= 0
         ):
-            return Asteroid(x, y)
+            self.game_state = "game_over"
+
+    def _draw_game_over_menu(self) -> None:
+        center_x: int = SCREEN_WIDTH // 2
+        center_y: int = SCREEN_HEIGHT // 2
+        title: pygame.Surface = self.font_large.render(
+            "GAME OVER", True, "white"
+        )
+        restart: pygame.Surface = self.font_small.render(
+            "R  -  Restart", True, "yellow"
+        )
+        quit_text: pygame.Surface = self.font_small.render(
+            "Q  -  Quit", True, "yellow"
+        )
+        self.screen.blit(
+            title, title.get_rect(center=(center_x, center_y - 60))
+        )
+        self.screen.blit(
+            restart, restart.get_rect(center=(center_x, center_y + 20))
+        )
+        self.screen.blit(
+            quit_text, quit_text.get_rect(center=(center_x, center_y + 70))
+        )
+
+    def _draw(self) -> None:
+        self.screen.fill("black")
+        for asteroid in self.asteroids:
+            asteroid.draw(self.screen)
+        self.ship.draw(self.screen)
+        for projectile in self.projectiles:
+            projectile.draw(self.screen)
+        if self.game_state == "game_over":
+            self._draw_game_over_menu()
+        pygame.display.flip()
+
+    def run(self) -> None:
+        is_running: bool = True
+        while is_running:
+            is_running = self._handle_events()
+            self._update()
+            self._draw()
+            self.delta_time = self.clock.tick(FPS) / 1000
+        pygame.quit()
 
 
-def is_colliding(space_obj1: SpaceObject, space_obj2: SpaceObject) -> bool:
-    return (
-        space_obj1.position.distance_to(space_obj2.position)
-        < space_obj1.RADIUS + space_obj2.RADIUS
-    )
-
-
-# ========== Game Setup ==========
-pygame.init()
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption(GAME_CAPTION)
-clock = pygame.time.Clock()
-
-# Fill the map with space objects
-ship = Ship(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
-asteroids: List[Asteroid] = [spawn_asteroid(ship) for _ in range(20)]
-projectiles: List[Projectile] = []
-
-running = True
-delta_time: float = 0.0
-shoot_timer: float = 0.0
-# ========== End Game Setup ==========
-
-# ========== Game Loop ==========
-while running:
-
-    if not ship.get_life_status() and ship.get_explosion_timer() <= 0:
-        running = False
-
-    shoot_timer -= delta_time
-
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
-    # Get input from the player
-    keys = pygame.key.get_pressed()
-    ship.handle_input(keys, delta_time)
-    if keys[pygame.K_SPACE] and shoot_timer <= 0:
-        projectiles.append(Projectile(ship))
-        shoot_timer = SHOOT_COOLDOWN
-
-    # Update the game objects
-    ship.update(delta_time)
-
-    for projectile in projectiles:
-        projectile.update(delta_time)
-    projectiles = [p for p in projectiles if not p.is_expired()]
-
-    for asteroid in asteroids:
-        asteroid.update(delta_time)
-
-    projectiles, asteroids = handle_projectile_collisions(
-        projectiles, asteroids
-    )
-
-    # Check if the player has collided w/asteroid
-    for asteroid in asteroids:
-        if is_colliding(asteroid, ship):
-            if ship.get_life_status():
-                print("killing ship")
-                ship.unalive()
-
-    # Clear the frame and draw the new one
-    screen.fill("black")
-    for asteroid in asteroids:
-        asteroid.draw(screen)
-    ship.draw(screen)
-    for projectile in projectiles:
-        projectile.draw(screen)
-
-    pygame.display.flip()
-    delta_time = clock.tick(FPS) / 1000
-# ========== End Game Loop ==========
-
-pygame.quit()
+if __name__ == "__main__":
+    Game().run()
