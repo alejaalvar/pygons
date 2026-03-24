@@ -1,0 +1,101 @@
+# This workflow builds PyGons executables for Linux, Windows, and macOS,
+# then publishes them as a GitHub Release.
+#
+# It is triggered by pushing a version tag, e.g.:
+#   git tag v1.0.0
+#   git push origin v1.0.0
+
+name: Build & Release
+
+# "on" defines what event triggers this workflow.
+# Here: only when a tag starting with "v" is pushed (v1.0.0, v1.2.3, etc.)
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+
+  # ── Job 1: Build ────────────────────────────────────────────────────────────
+  # This job runs three times in parallel — once per OS — thanks to the matrix.
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: pygons-linux
+            separator: ":"        # Linux/macOS use ":" in --add-data paths
+          - os: windows-latest
+            artifact: pygons-windows
+            separator: ";"        # Windows uses ";" in --add-data paths
+          - os: macos-latest
+            artifact: pygons-macos
+            separator: ":"
+
+    runs-on: ${{ matrix.os }}   # GitHub spins up a fresh VM for each OS
+
+    steps:
+      # 1. Check out your repository code onto the VM
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Install a specific Python version on the VM
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # 3. Install your game's dependencies plus PyInstaller
+      - name: Install dependencies
+        run: pip install -r requirements.txt pyinstaller
+
+      # 4. Build the executable.
+      #    --onefile       → single self-contained binary (easier for end users)
+      #    --add-data      → bundle the assets folder into the binary
+      #    --name          → name the output file (e.g. pygons-linux)
+      #    --windowed      → suppress the terminal window on Windows/macOS
+      - name: Build executable
+        run: >
+          pyinstaller
+          --onefile
+          --add-data "assets${{ matrix.separator }}assets"
+          --name ${{ matrix.artifact }}
+          --windowed
+          game.py
+
+      # 5. Upload the binary as a temporary artifact so the release job can grab it.
+      #    Artifacts are stored by GitHub for 90 days.
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/${{ matrix.artifact }}*   # * catches .exe on Windows
+
+  # ── Job 2: Release ──────────────────────────────────────────────────────────
+  # Runs after all three builds finish. Downloads the artifacts and
+  # creates a GitHub Release with all three binaries attached.
+  release:
+    needs: build          # wait for all build jobs to complete first
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write     # required to create a release and upload files
+
+    steps:
+      # 1. Download all three build artifacts into a dist/ folder
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      # 2. Create the GitHub Release and attach the executables.
+      #    github.ref_name is the tag name, e.g. "v1.0.0"
+      #    --generate-notes auto-writes release notes from your commit messages
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # provided automatically by GitHub
+        run: |
+          gh release create ${{ github.ref_name }} dist/* \
+            --repo ${{ github.repository }} \
+            --title "PyGons ${{ github.ref_name }}" \
+            --generate-notes
