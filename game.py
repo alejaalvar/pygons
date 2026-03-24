@@ -14,8 +14,14 @@ from space_object import *
 
 
 def resource_path(relative_path: str) -> str:
-    # When bundled by PyInstaller, files are extracted to sys._MEIPASS at runtime.
-    # In normal development, just use the path as-is.
+    """Resolve a resource path for both development and PyInstaller bundles
+
+    Args:
+        relative_path (str): the relative path to the resource
+
+    Returns:
+        str: the absolute path to the resource
+    """
     base = getattr(sys, "_MEIPASS", os.path.abspath("."))
     return os.path.join(base, relative_path)
 
@@ -33,6 +39,7 @@ class Game:
     """
 
     def __init__(self) -> None:
+        """Initialize pygame, the display, clock, fonts, and starting game state"""
         pygame.init()
         self.screen: pygame.Surface = pygame.display.set_mode(
             (SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -52,6 +59,7 @@ class Game:
         self.game_state = "title"
 
     def _reset(self) -> None:
+        """Reset all game objects and state to their starting values"""
         self.ship: Ship = Ship(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
         self.asteroids: List[Asteroid] = [
             self._spawn_asteroid() for _ in range(20)
@@ -62,6 +70,11 @@ class Game:
         self.delta_time: float = 0.0
 
     def _spawn_asteroid(self) -> Asteroid:
+        """Spawn an asteroid at a random position at least MIN_SPAWN_DISTANCE from the ship
+
+        Returns:
+            Asteroid: a new asteroid at a valid spawn position
+        """
         while True:
             x: float = random.uniform(0, SCREEN_WIDTH)
             y: float = random.uniform(0, SCREEN_HEIGHT)
@@ -72,12 +85,22 @@ class Game:
                 return Asteroid(x, y)
 
     def _is_colliding(self, obj1: SpaceObject, obj2: SpaceObject) -> bool:
+        """Check whether two space objects are overlapping based on their radii
+
+        Args:
+            obj1 (SpaceObject): the first space object
+            obj2 (SpaceObject): the second space object
+
+        Returns:
+            bool: True if the objects are colliding, False otherwise
+        """
         return (
             obj1.position.distance_to(obj2.position)
             < obj1.RADIUS + obj2.RADIUS
         )
 
     def _handle_projectile_collisions(self) -> None:
+        """Detect and remove any projectiles and asteroids that have collided"""
         hit_asteroids: set[Asteroid] = set()
         hit_projectiles: set[Projectile] = set()
 
@@ -93,6 +116,11 @@ class Game:
         self.asteroids = [a for a in self.asteroids if a not in hit_asteroids]
 
     def _handle_events(self) -> bool:
+        """Process pygame events and update game state based on player input
+
+        Returns:
+            bool: False if the game should exit, True otherwise
+        """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
@@ -121,6 +149,7 @@ class Game:
         return True
 
     def _update(self) -> None:
+        """Update all game object states and check for collisions - skipped when not playing"""
         if self.game_state != "playing":
             return
 
@@ -155,6 +184,7 @@ class Game:
             self.game_state = "game_over"
 
     def _draw_title_screen(self) -> None:
+        """Draw the title screen with start and quit options and developer credits"""
         center_x: int = SCREEN_WIDTH // 2
         center_y: int = SCREEN_HEIGHT // 2
         title: pygame.Surface = self.font_large.render(
@@ -201,6 +231,7 @@ class Game:
         )
 
     def _draw_pause_menu(self) -> None:
+        """Draw the pause menu with continue, restart, and quit options"""
         center_x: int = SCREEN_WIDTH // 2
         center_y: int = SCREEN_HEIGHT // 2
         title: pygame.Surface = self.font_large.render("PAUSE", True, "white")
@@ -229,6 +260,7 @@ class Game:
         )
 
     def _draw_game_over_menu(self) -> None:
+        """Draw the game over menu with restart and quit options"""
         center_x: int = SCREEN_WIDTH // 2
         center_y: int = SCREEN_HEIGHT // 2
         title: pygame.Surface = self.font_large.render(
@@ -251,6 +283,7 @@ class Game:
         )
 
     def _draw(self) -> None:
+        """Clear the screen and draw all game objects and the active menu overlay"""
         self.screen.fill("black")
         for asteroid in self.asteroids:
             asteroid.draw(self.screen)
@@ -267,6 +300,7 @@ class Game:
         pygame.display.flip()
 
     def run(self) -> None:
+        """Start and run the main game loop until the player quits"""
         is_running: bool = True
         while is_running:
             is_running = self._handle_events()

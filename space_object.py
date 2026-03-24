@@ -93,16 +93,29 @@ class Ship(SpaceObject):
     ]
 
     def __init__(self, x: float, y: float) -> None:
+        """Initialize a ship at a given position in 2d space
+
+        Args:
+            x (float): the x coordinate
+            y (float): the y coordinate
+        """
         super().__init__(x, y)
         self.is_alive = True
         self.explosion_timer: float = 0.0
 
     def get_explosion_timer(self) -> float:
+        """Return the current value of the explosion timer"""
         return self.explosion_timer
 
     def handle_input(
         self, keys: pygame.key.ScancodeWrapper, delta_time: float
     ) -> None:
+        """Read player input and apply rotation and thrust to the ship
+
+        Args:
+            keys (pygame.key.ScancodeWrapper): the current state of all keyboard keys
+            delta_time (float): time since the last frame was drawn
+        """
         if keys[pygame.K_a] or keys[pygame.K_LEFT] or keys[pygame.K_j]:
             self.angle -= self.TURN_SPEED * delta_time
         if keys[pygame.K_d] or keys[pygame.K_RIGHT] or keys[pygame.K_l]:
@@ -113,12 +126,22 @@ class Ship(SpaceObject):
             self.velocity += thrust_dir * self.THRUST * delta_time
 
     def update(self, delta_time: float) -> None:
+        """Update the ship's velocity drag and explosion timer each frame
+
+        Args:
+            delta_time (float): time since the last frame was drawn
+        """
         self.velocity *= self.DRAG
         if not self.is_alive:
             self.explosion_timer -= delta_time
         super().update(delta_time)
 
     def draw(self, screen: pygame.Surface) -> None:
+        """Draw the ship or its explosion animation to the screen
+
+        Args:
+            screen (pygame.Surface): the surface to draw on
+        """
         if self.is_alive:
             points: List[Vector2] = self._get_rotated_points(self.BASE_POINTS)
             pygame.draw.polygon(screen, SHIP_COLOR, points, width=0)
@@ -126,6 +149,11 @@ class Ship(SpaceObject):
             self.draw_explosion(screen)
 
     def draw_explosion(self, screen: pygame.Surface) -> None:
+        """Draw the ship's explosion animation as dispersing particles
+
+        Args:
+            screen (pygame.Surface): the surface to draw on
+        """
         progress: float = 1.0 - (
             self.explosion_timer / self.EXPLOSION_DURATION
         )
@@ -136,10 +164,12 @@ class Ship(SpaceObject):
             pygame.draw.circle(screen, SHIP_COLOR, (int(pos.x), int(pos.y)), 3)
 
     def unalive(self):
+        """Kill the ship and start the explosion timer"""
         self.is_alive = not self.is_alive
         self.explosion_timer = self.EXPLOSION_DURATION  # start the countdown
 
     def get_life_status(self) -> bool:
+        """Return True if the ship is alive, False otherwise"""
         return self.is_alive
 
 
@@ -164,6 +194,12 @@ class Asteroid(SpaceObject):
     ]
 
     def __init__(self, x: float, y: float) -> None:
+        """Initialize an asteroid at a given position with a random velocity
+
+        Args:
+            x (float): the x coordinate
+            y (float): the y coordinate
+        """
         super().__init__(x, y)
         speed: float = random.uniform(20, 80)
         angle: float = random.uniform(0, 360)
@@ -171,6 +207,11 @@ class Asteroid(SpaceObject):
         self.velocity = Vector2(math.sin(rad), -math.cos(rad)) * speed
 
     def draw(self, screen: pygame.Surface) -> None:
+        """Draw the asteroid as a polygon to the screen
+
+        Args:
+            screen (pygame.Surface): the surface to draw on
+        """
         points: List[Vector2] = self._get_rotated_points(self.BASE_POINTS)
         pygame.draw.polygon(screen, ASTEROID_COLOR, points, width=2)
 
@@ -191,19 +232,35 @@ class Projectile(SpaceObject):
     LIFETIME: float = 2.0
 
     def __init__(self, ship: Ship):
+        """Initialize a projectile at the ship's position, fired in the direction the ship is facing
+
+        Args:
+            ship (Ship): the ship that fired the projectile
+        """
         super().__init__(ship.position.x, ship.position.y)
         rad: float = math.radians(ship.angle)
         self.velocity = Vector2(math.sin(rad), -math.cos(rad)) * self.SPEED
         self.lifetime: float = self.LIFETIME
 
     def update(self, delta_time: float) -> None:
+        """Decrement the projectile's lifetime and update its position
+
+        Args:
+            delta_time (float): time since the last frame was drawn
+        """
         self.lifetime -= delta_time
         super().update(delta_time)
 
     def draw(self, screen: pygame.Surface) -> None:
+        """Draw the projectile as a small circle to the screen
+
+        Args:
+            screen (pygame.Surface): the surface to draw on
+        """
         pygame.draw.circle(
             screen, "red", (int(self.position.x), int(self.position.y)), 3
         )
 
     def is_expired(self) -> bool:
+        """Return True if the projectile's lifetime has expired"""
         return self.lifetime <= 0
