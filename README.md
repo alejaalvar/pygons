@@ -1,6 +1,6 @@
 # PyGons
 
-A fast-paced space shooter built with Python and pygame. Pilot your ship, dodge asteroids, and survive as long as you can.
+A multi-platform fast-paced space shooter built with Python and pygame. Pilot your ship, dodge asteroids, and survive as long as you can.
 
 ---
 
@@ -81,3 +81,15 @@ A fast-paced space shooter built with Python and pygame. Pilot your ship, dodge 
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+
+## Important Note
+
+- On some Linux distros, it is necessary to set the execution bits after installation in order to play the game. You can do so
+  by entering the following on the ccommand line:
+
+```bash
+chmod a+x /path/to/download
+```
+
+It is also possible to change the permissions in most graphical file managers if you prefer to use a GUI. Simply inspect the
+properties of the file and view its permissions.
